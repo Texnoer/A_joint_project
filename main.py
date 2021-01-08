@@ -55,16 +55,30 @@ class Mentor:
     def __init__(self, name, surname):
         self.name = name
         self.surname = surname
-        self.courses_attached = []
+        self.courses_attached = []  # общий список курсов lecturer и reviewer
+
+    def __repr__(self):  # это как и __str__ для вывода
+        return self.name + ' ' + self.surname + ' courses attached: ' + repr(self.courses_attached)
 
 
 class Lecturer(Mentor):
     def __init__(self, name, surname):
         super().__init__(name, surname)  # добавили метод super для связки с родителем
-        self.grades = []
-        self.courses_in_progress = []
+        # self.grades = []  # не используем
+        # self.courses_in_progress = []  # не используем
         self.rating_grades = {}  # создали словарь для записи оценок. Именно словарь! {'key', 'value'} дальше будем
         # искать нужные данные по ключу из словаря.
+
+    def __lt__(self, other):  # магический метод сравнения. Нужно написать функцию поиска среднего значения
+        # ниже average_grade - это название функции для поиска
+        if average_grade(self.rating_grades) < average_grade(other.rating_grades):
+            return 'The best result is ' + other.name + ' ' + other.surname + ' with a rating ' +\
+                   average_grade(other.rating_grades)
+        elif average_grade(self.rating_grades) == average_grade(other.rating_grades):
+            return 'the same result'
+        else:
+            return 'The best result is ' + self.name + ' ' + self.surname + ' with a rating ' +\
+                   average_grade(self.rating_grades)
 
 
 class Reviewer(Mentor):
@@ -77,6 +91,24 @@ class Reviewer(Mentor):
                 student.grades[course] = [grade]
         else:
             return 'Ошибка'
+
+
+def average_grade(some_grades):  # some_grades можешь заменить на любое другое слово
+    """ Поиск среднего значения оценки """
+    all_grades = []  # добавляем пустое хранилище для записи всех всех всех оценок одного студента
+    for subject, grades in some_grades.items():  # это разбиение словаря на ключ - значение.
+        for grade in grades:  # для ключа из словаря (в нашем случае ключ это название курса)
+            all_grades.append(grade)  # добавляем в хранилище все оценки
+    if len(all_grades) == 0:  # ищем длину хранилища. Если 0, то вернем ноль без дальнейших действий
+        av_grade = 0
+        return str(av_grade)
+    elif len(all_grades) > 0:  # если больше, то разделим сумму оценок (sum(all_grades) на длину len(all_grades))
+        # из математики  1+2+3+7 / 4 = 3,25
+        av_grade = round((sum(all_grades) / len(all_grades)), 1)  # round округляет результат до (сколько скажешь после
+        # запятой. В нашем случае до 1 знака после запятой. Иначе можем получить 7.3333333333333...
+        return str(av_grade)
+    else:
+        return "error"
 
 
 best_student = Student('Ruoy', 'Eman', 'your_gender')

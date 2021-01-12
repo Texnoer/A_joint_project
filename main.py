@@ -9,7 +9,10 @@ class Student:
         self.gender = gender
         self.finished_courses = []
         self.courses_in_progress = []
+        students.append(self)
         self.grades = {}
+        courses.append(self.finished_courses)
+        courses.append(self.courses_in_progress)
 
     def grades_hw(self, lecturer, course, grade):
         """Метод выставления оценок от студентов"""
@@ -26,7 +29,15 @@ class Student:
         information += '\nКурсы в процессе изучения: ' + (','.join(self.courses_in_progress))
         information += '\nЗавершенные курсы: ' + (', '.join(self.finished_courses))
         return information
-
+    def __lt__(self, other):
+        if average_grade(self.grades) < average_grade(other.grades):
+            return 'Лучший результат ' + other.name + ' ' + other.surname + ' с рейтингом ' +\
+                   average_grade(other.grades)
+        elif average_grade(self.grades) == average_grade(other.grades):
+            return 'Такой же результат'
+        else:
+            return 'Лучший результат ' + self.name + ' ' + self.surname + ' с рейтингом ' +\
+                   average_grade(self.grades)
 
 class Mentor:
     def __init__(self, name, surname):
@@ -42,6 +53,7 @@ class Lecturer(Mentor):
     def __init__(self, name, surname):
         super().__init__(name, surname)
         self.rating_grades = {}
+        all_lecturer.append(self)
 
     def __str__(self):
         information = '\nЛектор' + '\nИмя: ' + self.name + '\nФамилия: ' + self.surname
@@ -59,7 +71,7 @@ class Lecturer(Mentor):
                    average_grade(self.rating_grades)
 
 class Reviewer(Mentor):
-    # выставлять студентам оценки за домашние задания
+    """выставлять студентам оценки за домашние задания"""
     def rate_hw(self, student, course, grade):
         if isinstance(student, Student) and course in self.courses_attached and course in student.courses_in_progress:
             if course in student.grades:
@@ -75,17 +87,15 @@ class Reviewer(Mentor):
 
 def average_grade(about_grades):
     """ Поиск среднего значения оценки """
-    all_grades = []  # добавляем пустое хранилище для записи всех всех всех оценок одного студента
-    for subject, grades in about_grades.items():  # это разбиение словаря на ключ - значение.
-        for grade in grades:  # для ключа из словаря (в нашем случае ключ это название курса)
-            all_grades.append(grade)  # добавляем в хранилище все оценки
-    if len(all_grades) == 0:  # ищем длину хранилища. Если 0, то вернем ноль без дальнейших действий
+    all_grades = []
+    for subject, grades in about_grades.items():
+        for grade in grades:
+            all_grades.append(grade)
+    if len(all_grades) == 0:
         av_grade = 0
         return str(av_grade)
-    elif len(all_grades) > 0:  # если больше, то разделим сумму оценок (sum(all_grades) на длину len(all_grades))
-        # из математики  1+2+3+7 / 4 = 3,25
-        av_grade = round((sum(all_grades) / len(all_grades)), 1)  # round округляет результат до (сколько скажешь после
-        # запятой. В нашем случае до 1 знака после запятой. Иначе можем получить 7.3333333333333...
+    elif len(all_grades) > 0:
+        av_grade = round((sum(all_grades) / len(all_grades)), 1)
         return str(av_grade)
     else:
         return "Ошибка"
@@ -139,21 +149,22 @@ some_lecturer = Lecturer('Dmitry', 'Zhuk')
 cool_reviewer = Reviewer('Some', 'Buddy')
 some_reviewer = Reviewer('Chack', 'Firsov')
 
-best_student.courses_in_progress += ['Python', 'GIT', 'Java']
-some_student.courses_in_progress += ['Python', 'GIT']
+best_student.courses_in_progress += ['Python', 'GIT', 'Java', 'HTML']
+some_student.courses_in_progress += ['Python', 'GIT', 'C++', 'HTML']
 
-some_lecturer.courses_attached += ['Python', 'Git', 'C#', 'HTML']
-best_lecturer.courses_attached += ['Python', 'Git', 'CSS']
-some_reviewer.courses_attached += ['Python', 'Git', 'CSS']
-cool_reviewer.courses_attached += ['Python', 'CSS']
+some_lecturer.courses_attached += ['Python', 'GIT', 'C#', 'HTML']
+best_lecturer.courses_attached += ['Python', 'GIT', 'CSS', 'C++', 'HTML']
+some_reviewer.courses_attached += ['Python', 'GIT', 'CSS', 'C++']
+cool_reviewer.courses_attached += ['Python', 'CSS', 'HTML']
 
 some_student.grades_hw(some_lecturer, 'Python', 9)
 some_student.grades_hw(best_lecturer, 'Python', 10)
 best_student.grades_hw(some_lecturer, 'Python', 10)
-best_student.grades_hw(some_lecturer, 'Git', 9)
+best_student.grades_hw(some_lecturer, 'C++', 10)
+best_student.grades_hw(some_lecturer, 'GIT', 9)
 some_student.grades_hw(best_lecturer, 'HTML', 7)
 
-some_student.finished_courses += ['HTML', 'c++', 'notepad']
+some_student.finished_courses += ['HTML', 'notepad']
 best_student.finished_courses += ['HTML', 'C++', 'SQL']
 
 cool_reviewer.rate_hw(best_student, 'Python', 10)
@@ -162,32 +173,33 @@ cool_reviewer.rate_hw(best_student, 'Python', 9)
 some_reviewer.rate_hw(some_student, 'Python', 9)
 some_reviewer.rate_hw(some_student, 'Python', 8)
 cool_reviewer.rate_hw(some_student, 'HTML', 5)
+cool_reviewer.rate_hw(best_student, 'HTML', 6)
 cool_reviewer.rate_hw(some_student, 'C++', 7)
 some_reviewer.rate_hw(some_student, 'C++', 9)
-some_reviewer.rate_hw(best_student, 'Git', 7)
+some_reviewer.rate_hw(best_student, 'GIT', 7)
 
 
-# print(f"{some_lecturer.name} {some_lecturer.surname} rating is: ", average_grade(some_lecturer.rating_grades))
-# print(cool_reviewer)
-# print(repr(cool_reviewer))
-# print(some_lecturer)
-# print(some_lecturer.rating_grades)
-# print(best_student)
-# print(some_student)
+print(f"{some_lecturer.name} {some_lecturer.surname} рейтинг: ", average_grade(some_lecturer.rating_grades))
+print(cool_reviewer)
+print(repr(cool_reviewer))
+print(some_lecturer)
+print(some_lecturer.rating_grades)
+print(best_student)
+print(some_student)
 print(average_course('HTML', students))
 print(average_course('Python', students))
-print(average_course('Math', students))
-print(average_course('Git', students))
-print(average_course('CSS', students))
-# print(lecturer_average_grade('HTML', all_lecturer))
-# print(lecturer_average_grade('Python', all_lecturer))
-# print(lecturer_average_grade('CSS', all_lecturer))
-# print(lecturer_average_grade('C++', all_lecturer))
-# print(repr(cool_reviewer))
-# print(cool_reviewer)
+print(average_course('1C', students))
+print(average_course('GIT', students))
+print(average_course('C++', students))
+print(lecturer_average_grade('HTML', all_lecturer))
+print(lecturer_average_grade('Python', all_lecturer))
+print(lecturer_average_grade('CSS', all_lecturer))
+print(lecturer_average_grade('C++', all_lecturer))
+print(repr(cool_reviewer))
+print(cool_reviewer)
 print(best_student.__lt__(some_student))
-# print(best_lecturer.__lt__(best_lecturer))
-# print(best_lecturer.__lt__(some_lecturer))
-# print(best_student > some_student)  # after __lt__ method same that print(best_student.__lt__(ordinary_student))
-print(best_lecturer < some_lecturer)  # after __lt__ method same that print(best_lecturer.__lt__(new_lecturer))
-print(best_lecturer > some_lecturer)  # after __lt__ method same that print(best_lecturer.__lt__(some_lecturer))
+print(best_lecturer.__lt__(best_lecturer))
+print(best_lecturer.__lt__(some_lecturer))
+print(best_student > some_student)
+print(best_lecturer < some_lecturer)
+print(best_lecturer > some_lecturer)
